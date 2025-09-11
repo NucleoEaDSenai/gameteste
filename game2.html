@@ -1,22 +1,53 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Caça-Palavras</title>
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #f4f6fb;
+    :root { --baseW: 1155px; --baseH: 650px; }
+
+    html, body {
+      height: 100%;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      background: url("img/bg.jpg") no-repeat center center fixed;
+      background-size: cover;
+      font-family: "Segoe UI", Arial, sans-serif;
+      overflow: hidden;
     }
+
+    /* Palco fixo que é escalado responsivamente */
+    #stage {
+      position: absolute;
+      width: var(--baseW);
+      height: var(--baseH);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    /* utilitários de “vidro” com contorno sutil */
+    .glass {
+      background: rgba(255,255,255,0.78);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,0.86);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    /* Conteúdo do jogo */
     #container {
-      max-width: 1155px;
-      max-height: 650px;
       width: 100%;
       height: 100%;
       display: flex;
@@ -24,162 +55,111 @@
       padding: 10px;
       box-sizing: border-box;
     }
-    /* topo central */
+
+    /* topo */
     header {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 15px;
       margin-bottom: 10px;
     }
-    #cronometro {
-      font-size: 16px;
-      font-weight: bold;
-      color: #333;
+    /* barra (tempo + botão) com fundo translúcido + contorno */
+    #topbar {
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+      padding: 8px 12px;
     }
+    #cronometro { font-size: 16px; font-weight: bold; color: #333; }
     #novoJogo {
-      padding: 6px 14px;
-      font-size: 14px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      background: #2196f3;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
+      padding: 6px 14px; font-size: 14px; font-weight: bold;
+      border: none; border-radius: 6px; background: #2196f3; color: #fff;
+      cursor: pointer; transition: background 0.3s;
     }
     #novoJogo:hover { background: #1976d2; }
 
-    /* meio: 2 colunas */
+    /* meio */
     main {
-      flex: 1;
-      display: flex;
-      gap: 15px; /* aproxima mais colunas */
-      overflow: hidden;
+      flex: 1; display: flex; justify-content: center; align-items: center;
+      gap: 8px; overflow: hidden;
     }
-    /* coluna esquerda */
+
+    /* painel do menu (palavras + progresso) */
     #sidebar {
-      flex: 0 0 200px; /* mais estreito */
+      flex: 0 0 auto;
       display: flex;
       flex-direction: column;
-      align-items: flex-start; /* alinhado à esquerda */
+      align-items: flex-start;
+      margin-right: 8px;
+      padding: 10px 14px;
     }
     #palavras {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start; /* palavras ficam alinhadas à esquerda */
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; align-items: flex-start;
     }
-    #palavras li {
-      margin: 2px 0;
-      font-weight: bold;
-      color: #333;
-      font-size: 14px;
-    }
-    #palavras li.found { text-decoration: line-through; color: #4caf50; }
+    #palavras li { margin: 2px 0; font-weight: bold; color: #333; font-size: 14px; }
+    #palavras li.found { text-decoration: line-through; color: #008542; }
 
-    /* barra de progresso colada na lista */
-    #progresso {
-      margin-top: 6px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #333;
-      text-align: left;
-      width: 100%;
-    }
-    #progressBar {
-      width: 100%;
-      height: 12px;
-      background: #ddd;
-      border-radius: 6px;
-      margin-top: 3px;
-      overflow: hidden;
-    }
-    #progressFill {
-      height: 100%;
-      width: 0%;
-      background: #4caf50;
-      transition: width 0.3s;
-    }
+    #progresso { margin-top: 8px; font-size: 14px; font-weight: bold; color: #333; text-align: left; align-self: flex-start; }
+    #progressBar { width: 100%; height: 12px; background: #000; border-radius: 6px; margin-top: 3px; overflow: hidden; align-self: flex-start; }
+    #progressFill { height: 100%; width: 0%; background: #008542; transition: width 0.3s; }
 
-    /* coluna direita */
+    /* painel do tabuleiro */
     #board {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      flex: 0 0 auto;
+      display: flex; justify-content: center; align-items: center;
+      padding: 12px;
     }
-    table {
-      border-collapse: collapse;
-      user-select: none;
-    }
+
+    table { border-collapse: collapse; user-select: none; margin: 0; }
     td {
-      width: 32px;
-      height: 32px;
-      text-align: center;
-      vertical-align: middle;
-      border: 1px solid #ccc;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
+      width: 32px; height: 32px; text-align: center; vertical-align: middle;
+      border: 1px solid #ccc; font-weight: bold; font-size: 16px;
+      cursor: pointer; transition: background 0.2s;
+      background: transparent;
     }
-    td.selected { background: #87ceeb; }
-    td.found { background: #4caf50; color: #fff; }
+    td.selected { background: #fdc82f; }
+    td.found { background: #00b2a9; color: #fff; }
 
-    /* rodapé */
     #vitoria {
-      margin-top: 6px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #4caf50;
-      display: none;
-      text-align: center;
-    }
-
-    /* responsivo */
-    @media (max-width: 800px) {
-      main { flex-direction: column; align-items: center; }
-      #sidebar { flex: none; width: 100%; align-items: center; }
-      #palavras { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; }
-      td { width: 24px; height: 24px; font-size: 13px; }
-      #progresso { text-align: center; }
-    }
-    @media (max-width: 500px) {
-      td { width: 20px; height: 20px; font-size: 11px; }
+      margin-top: 6px; font-size: 18px; font-weight: bold;
+      color: #008542; display: none; text-align: center;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <header>
-      <div id="cronometro">⏱ Tempo: 0m 0s</div>
-      <button id="novoJogo">🔄 Novo Jogo</button>
-    </header>
-    <main>
-      <div id="sidebar">
-        <ul id="palavras"></ul>
-        <div id="progresso"></div>
-        <div id="progressBar"><div id="progressFill"></div></div>
-      </div>
-      <div id="board">
-        <table id="grid"></table>
-      </div>
-    </main>
-    <div id="vitoria">🎉 Parabéns! Você encontrou todas as palavras! 🎉</div>
+  <div id="stage">
+    <div id="container">
+      <header>
+        <div id="topbar" class="glass">
+          <div id="cronometro">⏱ Tempo: 0m 0s</div>
+          <button id="novoJogo">🔄 Novo Jogo</button>
+        </div>
+      </header>
+      <main>
+        <div id="sidebar" class="glass">
+          <ul id="palavras"></ul>
+          <div id="progresso"></div>
+          <div id="progressBar"><div id="progressFill"></div></div>
+        </div>
+        <div id="board" class="glass-strong">
+          <table id="grid"></table>
+        </div>
+      </main>
+      <div id="vitoria">🎉 Parabéns! Você encontrou todas as palavras! 🎉</div>
+    </div>
   </div>
 
   <script>
+    /* ====== Lógica do jogo ====== */
     const palavras = [
-      "TONINHA", "INSUMOS", "RECICLAGEM", "IMPACTO",
-      "MITIGAR", "MONITORAR", "REABILITAR", "ACIONAMENTO",
-      "COMUNICACAO", "RESIDUO", "LICENCA", "LINHAVERDE"
+      "TONINHA","INSUMOS","RECICLAGEM","IMPACTO",
+      "MITIGAR","MONITORAR","REABILITAR","ACIONAMENTO",
+      "COMUNICACAO","RESIDUO","LICENCA","LINHAVERDE"
     ];
     const tamanho = 15;
     const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const direcoes = [[0, 1], [1, 0], [1, 1]]; // → ↓ ↘
+    const direcoes = [[0,1],[1,0],[1,1]]; // → ↓ ↘
 
     let grid, tabela, lista, progresso, vitoria, cronometroEl, progressFill;
     let selecionando = false, inicio = null, fim = null, linhaAtual = [];
@@ -190,9 +170,7 @@
       palavras.forEach(p => colocaPalavra(p));
       for (let i = 0; i < tamanho; i++) {
         for (let j = 0; j < tamanho; j++) {
-          if (grid[i][j] === "") {
-            grid[i][j] = letras[Math.floor(Math.random() * letras.length)];
-          }
+          if (grid[i][j] === "") grid[i][j] = letras[Math.floor(Math.random() * letras.length)];
         }
       }
       tabela.innerHTML = "";
@@ -207,18 +185,21 @@
         });
         tabela.appendChild(tr);
       });
+
       lista.innerHTML = "";
       palavras.forEach(p => {
         const li = document.createElement("li");
         li.textContent = p;
         lista.appendChild(li);
       });
+
       encontrados = 0;
       progresso.textContent = `0 / ${palavras.length} palavras encontradas`;
       progressFill.style.width = "0%";
       vitoria.style.display = "none";
       tempo = 0;
       cronometroEl.textContent = "⏱ Tempo: 0m 0s";
+
       if (intervalo) clearInterval(intervalo);
       intervalo = setInterval(() => {
         tempo++;
@@ -237,10 +218,7 @@
         let r = linha, c = col, pode = true;
         for (let i = 0; i < palavra.length; i++) {
           if (r < 0 || r >= tamanho || c < 0 || c >= tamanho ||
-              (grid[r][c] !== "" && grid[r][c] !== palavra[i])) {
-            pode = false;
-            break;
-          }
+              (grid[r][c] !== "" && grid[r][c] !== palavra[i])) { pode = false; break; }
           r += dir[0]; c += dir[1];
         }
         if (pode) {
@@ -258,13 +236,16 @@
       linhaAtual.forEach(td => td.classList.remove("selected"));
       linhaAtual = [];
       if (!inicio || !fim) return;
-      const r1 = parseInt(inicio.dataset.row), c1 = parseInt(inicio.dataset.col);
-      const r2 = parseInt(fim.dataset.row), c2 = parseInt(fim.dataset.col);
+
+      const r1 = +inicio.dataset.row, c1 = +inicio.dataset.col;
+      const r2 = +fim.dataset.row, c2 = +fim.dataset.col;
       let dr = r2 - r1, dc = c2 - c1;
       let steps = Math.max(Math.abs(dr), Math.abs(dc));
       let stepR = dr === 0 ? 0 : dr / Math.abs(dr);
       let stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+
       if (!((stepR === 0 && stepC === 1) || (stepR === 1 && stepC === 0) || (stepR === 1 && stepC === 1))) return;
+
       let r = r1, c = c1;
       for (let i = 0; i <= steps; i++) {
         const td = document.querySelector(`td[data-row='${r}'][data-col='${c}']`);
@@ -279,24 +260,17 @@
       const palavraSel = linhaAtual.map(td => td.textContent).join("");
       const palavraSelInvertida = linhaAtual.map(td => td.textContent).reverse().join("");
       let achou = null;
-      palavras.forEach(p => {
-        if (p === palavraSel || p === palavraSelInvertida) achou = p;
-      });
+      palavras.forEach(p => { if (p === palavraSel || p === palavraSelInvertida) achou = p; });
+
       if (achou) {
-        linhaAtual.forEach(td => {
-          td.classList.remove("selected");
-          td.classList.add("found");
-        });
+        linhaAtual.forEach(td => { td.classList.remove("selected"); td.classList.add("found"); });
         Array.from(lista.children).forEach(li => {
           if (li.textContent === achou && !li.classList.contains("found")) {
             li.classList.add("found");
             encontrados++;
             progresso.textContent = `${encontrados} / ${palavras.length} palavras encontradas`;
             progressFill.style.width = `${(encontrados / palavras.length) * 100}%`;
-            if (encontrados === palavras.length) {
-              vitoria.style.display = "block";
-              clearInterval(intervalo);
-            }
+            if (encontrados === palavras.length) { vitoria.style.display = "block"; clearInterval(intervalo); }
           }
         });
       } else {
@@ -307,51 +281,37 @@
 
     function ativarEventos() {
       tabela.addEventListener("mousedown", e => {
-        if (e.target.tagName === "TD") {
-          selecionando = true;
-          inicio = e.target;
-          fim = null;
-        }
+        if (e.target.tagName === "TD") { selecionando = true; inicio = e.target; fim = null; }
       });
       tabela.addEventListener("mouseover", e => {
-        if (selecionando && e.target.tagName === "TD") {
-          fim = e.target;
-          destacarLinha(inicio, fim);
-        }
+        if (selecionando && e.target.tagName === "TD") { fim = e.target; destacarLinha(inicio, fim); }
       });
       window.addEventListener("mouseup", () => {
-        if (selecionando) {
-          validarSelecao();
-          selecionando = false;
-          inicio = null;
-          fim = null;
-        }
+        if (selecionando) { validarSelecao(); selecionando = false; inicio = null; fim = null; }
       });
       tabela.addEventListener("touchstart", e => {
         const td = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-        if (td && td.tagName === "TD") {
-          selecionando = true;
-          inicio = td;
-          fim = null;
-        }
+        if (td && td.tagName === "TD") { selecionando = true; inicio = td; fim = null; }
       });
       tabela.addEventListener("touchmove", e => {
         const td = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
-        if (selecionando && td && td.tagName === "TD") {
-          fim = td;
-          destacarLinha(inicio, fim);
-        }
+        if (selecionando && td && td.tagName === "TD") { fim = td; destacarLinha(inicio, fim); }
       });
       tabela.addEventListener("touchend", () => {
-        if (selecionando) {
-          validarSelecao();
-          selecionando = false;
-          inicio = null;
-          fim = null;
-        }
+        if (selecionando) { validarSelecao(); selecionando = false; inicio = null; fim = null; }
       });
     }
 
+    /* ====== Escala responsiva (mantém layout) ====== */
+    function applyScale() {
+      const baseW = 1155, baseH = 650;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const scale = Math.min(vw / baseW, vh / baseH, 1);
+      document.getElementById('stage').style.transform =
+        `translate(-50%, -50%) scale(${scale})`;
+    }
+
+    /* ====== Inicialização ====== */
     tabela = document.getElementById("grid");
     lista = document.getElementById("palavras");
     progresso = document.getElementById("progresso");
@@ -362,7 +322,14 @@
     inicializarJogo();
     ativarEventos();
 
-    document.getElementById("novoJogo").addEventListener("click", inicializarJogo);
+    document.getElementById("novoJogo").addEventListener("click", () => {
+      inicializarJogo();
+      applyScale();
+    });
+
+    window.addEventListener('load', applyScale);
+    window.addEventListener('resize', applyScale);
+    window.addEventListener('orientationchange', applyScale);
   </script>
 </body>
 </html>
