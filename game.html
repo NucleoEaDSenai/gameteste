@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Caça-Palavras</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      text-align: center;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #333; }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      user-select: none;
+    }
+    td {
+      width: 32px;
+      height: 32px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid #ccc;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    td.selected { background: #87ceeb; }
+    td.found { background: #4caf50; color: #fff; }
+    #palavras {
+      margin-top: 20px;
+      font-size: 16px;
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #palavras li {
+      margin: 6px 12px;
+      font-weight: bold;
+      color: #333;
+    }
+    #palavras li.found { text-decoration: line-through; color: #4caf50; }
+    #progresso, #cronometro {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+    #vitoria {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #4caf50;
+      display: none;
+    }
+    #novoJogo {
+      margin-top: 25px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      background: #2196f3;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #novoJogo:hover { background: #1976d2; }
+
+    @media (max-width: 600px) {
+      td { width: 24px; height: 24px; font-size: 13px; }
+    }
+    @media (max-width: 400px) {
+      td { width: 20px; height: 20px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <table id="grid"></table>
+  <h2>Encontre as palavras:</h2>
+  <ul id="palavras"></ul>
+  <div id="progresso"></div>
+  <div id="cronometro">⏱ Tempo: 0m 0s</div>
+  <div id="vitoria">🎉 Parabéns! Você encontrou todas as palavras! 🎉</div>
+  <button id="novoJogo">🔄 Novo Jogo</button>
+
+  <script>
+    const palavras = [
+      "TONINHA", "INSUMOS", "RECICLAGEM", "IMPACTO",
+      "MITIGAR", "MONITORAR", "REABILITAR", "ACIONAMENTO",
+      "COMUNICACAO", "RESIDUO", "LICENCA", "LINHAVERDE"
+    ];
+    const tamanho = 15;
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const direcoes = [[0, 1], [1, 0], [1, 1]]; // → ↓ ↘
+
+    let grid, tabela, lista, progresso, vitoria, cronometroEl;
+    let selecionando = false, inicio = null, fim = null, linhaAtual = [];
+    let encontrados = 0, tempo = 0, intervalo = null;
+
+    function inicializarJogo() {
+      grid = Array.from({ length: tamanho }, () => Array(tamanho).fill(""));
+      palavras.forEach(p => colocaPalavra(p));
+      for (let i = 0; i < tamanho; i++) {
+        for (let j = 0; j < tamanho; j++) {
+          if (grid[i][j] === "") {
+            grid[i][j] = letras[Math.floor(Math.random() * letras.length)];
+          }
+        }
+      }
+      tabela.innerHTML = "";
+      grid.forEach((linha, i) => {
+        const tr = document.createElement("tr");
+        linha.forEach((letra, j) => {
+          const td = document.createElement("td");
+          td.textContent = letra;
+          td.dataset.row = i;
+          td.dataset.col = j;
+          tr.appendChild(td);
+        });
+        tabela.appendChild(tr);
+      });
+      lista.innerHTML = "";
+      palavras.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = p;
+        lista.appendChild(li);
+      });
+      encontrados = 0;
+      progresso.textContent = `0 / ${palavras.length} palavras encontradas`;
+      vitoria.style.display = "none";
+      tempo = 0;
+      cronometroEl.textContent = "⏱ Tempo: 0m 0s";
+      if (intervalo) clearInterval(intervalo);
+      intervalo = setInterval(() => {
+        tempo++;
+        const min = Math.floor(tempo / 60);
+        const seg = tempo % 60;
+        cronometroEl.textContent = `⏱ Tempo: ${min}m ${seg}s`;
+      }, 1000);
+    }
+
+    function colocaPalavra(palavra) {
+      let colocado = false;
+      while (!colocado) {
+        const dir = direcoes[Math.floor(Math.random() * direcoes.length)];
+        const linha = Math.floor(Math.random() * tamanho);
+        const col = Math.floor(Math.random() * tamanho);
+
+        let r = linha, c = col, pode = true;
+        for (let i = 0; i < palavra.length; i++) {
+          if (
+            r < 0 || r >= tamanho || c < 0 || c >= tamanho ||
+            (grid[r][c] !== "" && grid[r][c] !== palavra[i])
+          ) {
+            pode = false;
+            break;
+          }
+          r += dir[0]; c += dir[1];
+        }
+        if (pode) {
+          r = linha; c = col;
+          for (let i = 0; i < palavra.length; i++) {
+            grid[r][c] = palavra[i];
+            r += dir[0]; c += dir[1];
+          }
+          colocado = true;
+        }
+      }
+    }
+
+    function destacarLinha(inicio, fim) {
+      linhaAtual.forEach(td => td.classList.remove("selected"));
+      linhaAtual = [];
+
+      if (!inicio || !fim) return;
+
+      const r1 = parseInt(inicio.dataset.row), c1 = parseInt(inicio.dataset.col);
+      const r2 = parseInt(fim.dataset.row), c2 = parseInt(fim.dataset.col);
+
+      let dr = r2 - r1, dc = c2 - c1;
+      let steps = Math.max(Math.abs(dr), Math.abs(dc));
+
+      // calcular direção normalizada
+      let stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+      let stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+
+      // só aceita → ↓ ↘
+      if (!((stepR === 0 && stepC === 1) || (stepR === 1 && stepC === 0) || (stepR === 1 && stepC === 1))) {
+        return;
+      }
+
+      let r = r1, c = c1;
+      for (let i = 0; i <= steps; i++) {
+        const td = document.querySelector(`td[data-row='${r}'][data-col='${c}']`);
+        if (td) {
+          linhaAtual.push(td);
+        }
+        r += stepR;
+        c += stepC;
+      }
+      linhaAtual.forEach(td => td.classList.add("selected"));
+    }
+
+    function validarSelecao() {
+      if (linhaAtual.length < 2) return;
+      const palavraSel = linhaAtual.map(td => td.textContent).join("");
+      const palavraSelInvertida = linhaAtual.map(td => td.textContent).reverse().join("");
+
+      let achou = null;
+      palavras.forEach(p => {
+        if (p === palavraSel || p === palavraSelInvertida) achou = p;
+      });
+
+      if (achou) {
+        linhaAtual.forEach(td => {
+          td.classList.remove("selected");
+          td.classList.add("found");
+        });
+        Array.from(lista.children).forEach(li => {
+          if (li.textContent === achou && !li.classList.contains("found")) {
+            li.classList.add("found");
+            encontrados++;
+            progresso.textContent = `${encontrados} / ${palavras.length} palavras encontradas`;
+            if (encontrados === palavras.length) {
+              vitoria.style.display = "block";
+              clearInterval(intervalo);
+            }
+          }
+        });
+      } else {
+        linhaAtual.forEach(td => td.classList.remove("selected"));
+      }
+      linhaAtual = [];
+    }
+
+    function ativarEventos() {
+      tabela.addEventListener("mousedown", e => {
+        if (e.target.tagName === "TD") {
+          selecionando = true;
+          inicio = e.target;
+          fim = null;
+        }
+      });
+      tabela.addEventListener("mouseover", e => {
+        if (selecionando && e.target.tagName === "TD") {
+          fim = e.target;
+          destacarLinha(inicio, fim);
+        }
+      });
+      window.addEventListener("mouseup", () => {
+        if (selecionando) {
+          validarSelecao();
+          selecionando = false;
+          inicio = null;
+          fim = null;
+        }
+      });
+
+      // toque
+      tabela.addEventListener("touchstart", e => {
+        const td = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if (td && td.tagName === "TD") {
+          selecionando = true;
+          inicio = td;
+          fim = null;
+        }
+      });
+      tabela.addEventListener("touchmove", e => {
+        const td = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+        if (selecionando && td && td.tagName === "TD") {
+          fim = td;
+          destacarLinha(inicio, fim);
+        }
+      });
+      tabela.addEventListener("touchend", () => {
+        if (selecionando) {
+          validarSelecao();
+          selecionando = false;
+          inicio = null;
+          fim = null;
+        }
+      });
+    }
+
+    tabela = document.getElementById("grid");
+    lista = document.getElementById("palavras");
+    progresso = document.getElementById("progresso");
+    vitoria = document.getElementById("vitoria");
+    cronometroEl = document.getElementById("cronometro");
+
+    inicializarJogo();
+    ativarEventos();
+
+    document.getElementById("novoJogo").addEventListener("click", inicializarJogo);
+  </script>
+</body>
+</html>
