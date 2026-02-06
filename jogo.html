@@ -27,16 +27,7 @@
       will-change: transform;
     }
 
-    .glass {
-      background: rgba(255,255,255,0.55);
-      -webkit-backdrop-filter: blur(4px);
-      backdrop-filter: blur(4px);
-      border-radius: 12px;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.18);
-      border: 1px solid rgba(0,0,0,0.08);
-    }
-
-    .glass-strong {
+    .glass, .glass-strong {
       background: rgba(255,255,255,0.55);
       -webkit-backdrop-filter: blur(4px);
       backdrop-filter: blur(4px);
@@ -66,17 +57,18 @@
       align-items: center;
       gap: 15px;
       padding: 8px 12px;
+      margin: 0 0 0 100px;
     }
 
     #cronometro {
-      font-size: 16px;
+      font-size: 21px;
       font-weight: bold;
       color: #333;
     }
 
     #novoJogo, #btnReiniciar {
       padding: 6px 14px;
-      font-size: 14px;
+      font-size: 19px;
       font-weight: bold;
       border: none;
       border-radius: 6px;
@@ -85,22 +77,14 @@
       transition: background 0.3s, transform 0.05s;
     }
 
-    #novoJogo {
-      background: #2196f3;
-    }
-
-    #novoJogo:hover {
-      background: #1976d2;
-    }
+    #novoJogo { background: #2196f3; }
+    #novoJogo:hover { background: #1976d2; }
 
     #btnReiniciar {
       background: #008542;
       margin-left: 10px;
     }
-
-    #btnReiniciar:hover {
-      background: #006b34;
-    }
+    #btnReiniciar:hover { background: #006b34; }
 
     #novoJogo:active, #btnReiniciar:active {
       transform: translateY(1px);
@@ -116,7 +100,6 @@
     }
 
     #sidebar {
-      flex: 0 0 auto;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
@@ -128,16 +111,13 @@
       list-style: none;
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
     }
 
     #palavras li {
       margin: 2px 0;
       font-weight: bold;
       color: #333;
-      font-size: 14px;
+      font-size: 19px;
     }
 
     #palavras li.found {
@@ -147,11 +127,9 @@
 
     #progresso {
       margin-top: 8px;
-      font-size: 14px;
+      font-size: 19px;
       font-weight: bold;
       color: #333;
-      text-align: left;
-      align-self: flex-start;
     }
 
     #progressBar {
@@ -161,7 +139,6 @@
       border-radius: 6px;
       margin-top: 3px;
       overflow: hidden;
-      align-self: flex-start;
     }
 
     #progressFill {
@@ -173,18 +150,15 @@
 
     #board {
       position: relative;
-      flex: 0 0 auto;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 12px;
-      overflow: visible;
     }
 
     table {
       border-collapse: collapse;
       user-select: none;
-      margin: 0;
     }
 
     td {
@@ -194,16 +168,12 @@
       vertical-align: middle;
       border: 1px solid #ccc;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 21px;
       cursor: pointer;
       transition: background 0.2s;
-      background: transparent;
     }
 
-    td.selected {
-      background: #fdc82f;
-    }
-
+    td.selected { background: #fdc82f; }
     td.found {
       background: #00b2a9;
       color: #fff;
@@ -219,10 +189,9 @@
       max-width: min(480px, 90%);
       text-align: center;
       padding: 12px 18px;
-      font-size: 14px;
+      font-size: 19px;
       font-weight: bold;
       color: #008542;
-      pointer-events: auto;
     }
   </style>
 </head>
